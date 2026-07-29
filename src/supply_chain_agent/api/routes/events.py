@@ -13,6 +13,8 @@ from ...scoring.decision_scorer import score_all_plans
 from ...scoring.scoring_weights import ScoringWeights
 from ...recommendation.recommender import recommend
 from ...reasoning.explanation_engine import generate_explanation
+from ...prediction.state_projector import project_post_recommendation_state
+from ...prediction.prediction_explainer import build_prediction_trace, generate_prediction_narrative
 
 router = APIRouter(prefix="/events", tags=["events"])
 
@@ -195,3 +197,35 @@ def explain_event_decision(event_id: int, db: Session = Depends(get_db)):
         "narrative": explanation.narrative,
         "narrative_source": explanation.narrative_source,
     }
+
+# src/supply_chain_agent/api/routes/events.py  (add this)
+
+
+
+@router.get("/{event_id}/predict")
+def predict_post_recommendation_state(event_id: int, db: Session = Depends(get_db)):
+    event = db.query(Event).get(event_id)
+    if event is None:
+        return {"error": "Event not found"}
+
+    report = analyze_impact(db, event)
+    if report is None:
+        return {"error": "Could not determine impact."}
+
+    plans = generate_recovery_plans(db, event, report)
+    sim_results = simulate_all_plans(plans, report)
+    scored = score_all_plans(sim_results, ScoringWeights())
+    recommendation = recommend(event, scored, sim_results)
+    if recommendation is None:
+        return {"error": "No recommendation available."}
+
+    selected_plan = next(p for p in plans if p.plan_id == recommendation.selected_plan_id)
+    selected_sim_result = sim_results[recommendation.selected_plan_id]
+
+    state = project_post_recommendation_state(event_id, report, selected_plan, selected_sim_result)
+    trace = build_prediction_trace(report, state)
+    narrative, source = generate_prediction_narrative(trace)
+    state.narrative = narrative
+    state.narrative_source = source
+
+    return state.to_dict()

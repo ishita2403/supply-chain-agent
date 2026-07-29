@@ -8,6 +8,7 @@ from ..graph.dependency_graph import (
 from ..graph.graph_utils import get_downstream_impact
 from .delay_estimator import estimate_source_delay_days
 from .impact_report import ImpactReport, AffectedPO
+from .severity import compute_severity_from_delay_and_priority
 
 
 def _get_start_node(event: Event) -> str | None:
@@ -119,21 +120,11 @@ def analyze_impact(session: Session, event: Event) -> ImpactReport | None:
     report.total_revenue_at_risk = round(total_revenue, 2)
     report.high_priority_customers_affected = high_priority_count
     report.overall_severity = _compute_overall_severity(report)
-
     return report
 
 
 def _compute_overall_severity(report: ImpactReport) -> str:
-    """
-    Simple triage-level rollup -- NOT the full multi-criteria scoring
-    system (that's Phase 8, and it scores RECOVERY PLANS, not raw impact).
-    """
     max_delay = max((po.delay_days for po in report.affected_pos), default=0)
+    return compute_severity_from_delay_and_priority(max_delay, report.high_priority_customers_affected)
 
-    if max_delay >= 14 or report.high_priority_customers_affected >= 2:
-        return "critical"
-    if max_delay >= 7 or report.high_priority_customers_affected >= 1:
-        return "high"
-    if max_delay >= 3:
-        return "medium"
-    return "low"
+
