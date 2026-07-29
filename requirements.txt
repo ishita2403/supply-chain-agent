@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+sqlalchemy
+networkx
+pydantic
+pandas
+pytest
+rapidfuzz
+networkx
