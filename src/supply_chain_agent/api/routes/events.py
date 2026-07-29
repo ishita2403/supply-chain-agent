@@ -8,6 +8,11 @@ from ...ingestion.event_ingestion import ingest_event
 from ...impact.impact_analysis import analyze_impact
 from ...recovery.plan_generator import generate_recovery_plans
 from ...simulation.scenario_simulator import simulate_all_plans
+from ...simulation.scenario_simulator import simulate_all_plans
+from ...scoring.decision_scorer import score_all_plans
+from ...scoring.scoring_weights import ScoringWeights
+from ...recommendation.recommender import recommend
+from ...reasoning.explanation_engine import generate_explanation
 
 router = APIRouter(prefix="/events", tags=["events"])
 
@@ -95,4 +100,98 @@ def simulate_event_plans(event_id: int, db: Session = Depends(get_db)):
     return {
         "event_id": event_id,
         "simulations": {pid: r.to_dict() for pid, r in results.items()},
+    }
+# src/supply_chain_agent/api/routes/events.py  (add this)
+
+
+
+@router.get("/{event_id}/simulate")
+def simulate_event_plans(event_id: int, db: Session = Depends(get_db)):
+    event = db.query(Event).get(event_id)
+    if event is None:
+        return {"error": "Event not found"}
+
+    report = analyze_impact(db, event)
+    if report is None:
+        return {"error": "Could not determine impact."}
+
+    plans = generate_recovery_plans(db, event, report)
+    results = simulate_all_plans(plans, report)
+
+    return {
+        "event_id": event_id,
+        "simulations": {pid: r.to_dict() for pid, r in results.items()},
+    }
+# src/supply_chain_agent/api/routes/events.py  (add this)
+
+
+
+@router.get("/{event_id}/score")
+def score_event_plans(event_id: int, db: Session = Depends(get_db)):
+    event = db.query(Event).get(event_id)
+    if event is None:
+        return {"error": "Event not found"}
+
+    report = analyze_impact(db, event)
+    if report is None:
+        return {"error": "Could not determine impact."}
+
+    plans = generate_recovery_plans(db, event, report)
+    sim_results = simulate_all_plans(plans, report)
+    scored = score_all_plans(sim_results, ScoringWeights())
+
+    return {"event_id": event_id, "ranked_plans": [sp.to_dict() for sp in scored]}
+
+# src/supply_chain_agent/api/routes/events.py  (add this)
+
+
+
+@router.get("/{event_id}/recommend")
+def recommend_for_event(event_id: int, db: Session = Depends(get_db)):
+    event = db.query(Event).get(event_id)
+    if event is None:
+        return {"error": "Event not found"}
+
+    report = analyze_impact(db, event)
+    if report is None:
+        return {"error": "Could not determine impact."}
+
+    plans = generate_recovery_plans(db, event, report)
+    sim_results = simulate_all_plans(plans, report)
+    scored = score_all_plans(sim_results, ScoringWeights())
+
+    recommendation = recommend(event, scored, sim_results)
+    if recommendation is None:
+        return {"error": "No plans available to recommend."}
+
+    return recommendation.to_dict()
+
+# src/supply_chain_agent/api/routes/events.py  (add this)
+
+
+@router.get("/{event_id}/explain")
+def explain_event_decision(event_id: int, db: Session = Depends(get_db)):
+    event = db.query(Event).get(event_id)
+    if event is None:
+        return {"error": "Event not found"}
+
+    report = analyze_impact(db, event)
+    if report is None:
+        return {"error": "Could not determine impact."}
+
+    plans = generate_recovery_plans(db, event, report)
+    sim_results = simulate_all_plans(plans, report)
+    scored = score_all_plans(sim_results, ScoringWeights())
+    recommendation = recommend(event, scored, sim_results)
+
+    if recommendation is None:
+        return {"error": "No recommendation available."}
+
+    explanation = generate_explanation(db, event, report, scored, recommendation)
+
+    return {
+        "event_id": event_id,
+        "reasoning_trace": explanation.reasoning_trace,
+        "narrative": explanation.narrative,
+        "narrative_source": explanation.narrative_source,
     }

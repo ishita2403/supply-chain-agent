@@ -7,3 +7,4 @@ pandas
 pytest
 rapidfuzz
 networkx
+requests
