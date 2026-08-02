@@ -166,33 +166,44 @@ def generate_split_production_plan(session: Session, event: Event, report: Impac
     if not report.affected_product_names:
         return None
 
-    product = session.query(Product).filter_by(name=report.affected_product_names[0]).first()
-    if product is None:
-        return None
+    best_product = None
+    best_factory_links = None
 
-    factory_links = session.query(FactoryProduct).filter_by(product_id=product.id).all()
-    if len(factory_links) < 2:
-        return None  # FEASIBILITY CHECK: only one factory can make this product
+    for product_name in report.affected_product_names:
+        product = session.query(Product).filter_by(name=product_name).first()
+        if product is None:
+            continue
+
+        factory_links = session.query(FactoryProduct).filter_by(product_id=product.id).all()
+        if len(factory_links) < 2:
+            continue
+
+        if best_factory_links is None or len(factory_links) > len(best_factory_links):
+            best_product = product
+            best_factory_links = factory_links
+
+    if best_product is None or best_factory_links is None:
+        return None  # FEASIBILITY CHECK: no affected product is made at two or more factories
 
     total_qty = sum(po.quantity for po in report.affected_pos) or 1000
-    total_capacity = sum(fl.production_rate_per_day for fl in factory_links)
+    total_capacity = sum(fl.production_rate_per_day for fl in best_factory_links)
 
     split_details = [
         {
             "factory_id": fl.factory_id,
             "share_of_production": round(fl.production_rate_per_day / total_capacity, 2),
         }
-        for fl in factory_links
+        for fl in best_factory_links
     ]
 
     action = RecoveryAction(
         action_type="split_production",
-        details={"product_id": product.id, "quantity": total_qty, "factory_split": split_details},
+        details={"product_id": best_product.id, "quantity": total_qty, "factory_split": split_details},
     )
     return RecoveryPlan.new(
         strategy_type="split_production",
         description=(
-            f"Split production of {product.name} across {len(factory_links)} factories, "
+            f"Split production of {best_product.name} across {len(best_factory_links)} factories, "
             f"proportional to their production rates, to parallelize catch-up."
         ),
         actions=[action],

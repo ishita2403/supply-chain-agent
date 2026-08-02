@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
-from ...models import SessionLocal
+from ...models import SessionLocal, Event
 from ...ingestion.schemas import EventCreate, EventOut
 from ...ingestion.event_ingestion import ingest_event
 from ...impact.impact_analysis import analyze_impact
@@ -15,6 +15,9 @@ from ...recommendation.recommender import recommend
 from ...reasoning.explanation_engine import generate_explanation
 from ...prediction.state_projector import project_post_recommendation_state
 from ...prediction.prediction_explainer import build_prediction_trace, generate_prediction_narrative
+from ...orchestrator.agent_orchestrator import SupplyChainAgent
+from pydantic import BaseModel
+from ...scoring.scoring_weights import ScoringWeights
 
 router = APIRouter(prefix="/events", tags=["events"])
 
@@ -229,3 +232,28 @@ def predict_post_recommendation_state(event_id: int, db: Session = Depends(get_d
     state.narrative_source = source
 
     return state.to_dict()
+
+@router.get("/{event_id}/full-analysis")
+def run_full_agent_analysis(event_id: int, db: Session = Depends(get_db)):
+    agent = SupplyChainAgent(db)
+    run = agent.process_event(event_id)
+    return run.to_dict()
+
+# src/supply_chain_agent/api/routes/events.py  (add this)
+
+
+
+class WeightsInput(BaseModel):
+    cost: float = 0.20
+    delay_reduction: float = 0.25
+    customer_satisfaction: float = 0.20
+    risk: float = 0.15
+    revenue_recovered: float = 0.15
+    supplier_reliability: float = 0.05
+
+@router.post("/{event_id}/run")
+def run_agent_with_weights(event_id: int, weights: WeightsInput, db: Session = Depends(get_db)):
+    scoring_weights = ScoringWeights(**weights.model_dump())
+    agent = SupplyChainAgent(db, scoring_weights=scoring_weights)
+    run = agent.process_event(event_id)
+    return run.to_dict()
