@@ -257,3 +257,13 @@ def run_agent_with_weights(event_id: int, weights: WeightsInput, db: Session = D
     agent = SupplyChainAgent(db, scoring_weights=scoring_weights)
     run = agent.process_event(event_id)
     return run.to_dict()
+
+
+# src/supply_chain_agent/api/routes/events.py  (add this)
+
+@router.post("/{event_id}/run-fast")
+def run_agent_fast(event_id: int, db: Session = Depends(get_db)):
+    """Fast path: skips the LLM narrative step, returns template explanations immediately."""
+    agent = SupplyChainAgent(db)
+    run = agent.process_event(event_id, skip_llm=True)
+    return run.to_dict()
