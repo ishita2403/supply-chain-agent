@@ -33,12 +33,3 @@ def list_events(limit: int = 20):
         for e in events_list
     ]
 
-from fastapi import FastAPI
-
-app = FastAPI()
-
-@app.get("/")
-def root():
-    return {
-        "message": "Supply Chain Agent API is running"
-    }

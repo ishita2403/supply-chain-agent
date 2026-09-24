@@ -2,3 +2,20 @@ source,raw_text,reported_at,external_reference_id
 supplier_portal,"Acme Electronics reports a 10-day delay on Microcontroller Chip shipment due to a factory fire.",2026-07-20T09:00:00,ERP-EVT-1001
 supplier_portal,"Backup Components Co confirms on-time delivery for this cycle.",2026-07-20T10:15:00,ERP-EVT-1002
 quality_system,"Quality inspection flagged a 4% defect rate on Li-ion Battery batch #4521.",2026-07-21T14:30:00,ERP-EVT-1003
+supplier_portal,"Global Components Ltd reports a 5-day delay on Memory Module shipment due to port congestion.",2026-07-22T08:30:00,ERP-EVT-1004
+supplier_portal,"TechParts Industries confirms a 2-day delay on Power Controller shipment due to transportation issues.",2026-07-22T11:00:00,ERP-EVT-1005
+quality_system,"Quality inspection flagged a 7% defect rate on Microcontroller Chip batch #4522.",2026-07-23T09:15:00,ERP-EVT-1006
+quality_system,"Quality inspection flagged a 3% defect rate on Power Controller batch #7812.",2026-07-23T13:45:00,ERP-EVT-1007
+supplier_portal,"Acme Electronics confirms on-time delivery for the current Microcontroller Chip order.",2026-07-24T10:00:00,ERP-EVT-1008
+supplier_portal,"Backup Components Co reports a 4-day delay on Microcontroller Chip shipment due to production constraints.",2026-07-24T15:20:00,ERP-EVT-1009
+supplier_portal,"Global Components Ltd confirms on-time delivery for this cycle.",2026-07-25T09:30:00,ERP-EVT-1010
+quality_system,"Quality inspection flagged a 6% defect rate on Li-ion Battery batch #4523.",2026-07-25T12:00:00,ERP-EVT-1011
+supplier_portal,"Acme Electronics reports a 7-day delay on Li-ion Battery shipment due to raw material shortage.",2026-07-26T08:45:00,ERP-EVT-1012
+quality_system,"Quality inspection flagged a 5% defect rate on Memory Module batch #3321.",2026-07-26T11:30:00,ERP-EVT-1013
+supplier_portal,"TechParts Industries confirms on-time delivery for the Power Controller order.",2026-07-27T09:00:00,ERP-EVT-1014
+supplier_portal,"Global Components Ltd reports an 8-day delay on Power Controller shipment due to equipment failure.",2026-07-27T14:15:00,ERP-EVT-1015
+quality_system,"Quality inspection flagged a 9% defect rate on Microcontroller Chip batch #4524.",2026-07-28T10:20:00,ERP-EVT-1016
+supplier_portal,"Backup Components Co reports a 3-day delay on Memory Module shipment due to customs clearance.",2026-07-28T16:00:00,ERP-EVT-1017
+supplier_portal,"Acme Electronics confirms on-time delivery for the Li-ion Battery order.",2026-07-29T09:40:00,ERP-EVT-1018
+quality_system,"Quality inspection flagged a 2% defect rate on Li-ion Battery batch #4525.",2026-07-29T13:10:00,ERP-EVT-1019
+supplier_portal,"TechParts Industries reports a 6-day delay on Microcontroller Chip shipment due to supplier capacity constraints.",2026-07-30T11:45:00,ERP-EVT-1020
